@@ -31,24 +31,26 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   User _logged;
   bool liked = false;
+  bool interested = false;
   int likes = 143;
   bool refreshed = false;
   _HomePageState(this._logged);
   Widget actual;
+  Map lastRefreshed = new Map();
 
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    // FirebaseAdMob.instance.initialize(appId: "ca-app-pub-7599976903549248~3408543611");
-    // myBanner
-    // ..load()
-    // ..show(
-    //   anchorOffset: 60.0,
-    //   horizontalCenterOffset: 10.0,
-    //   anchorType: AnchorType.bottom,
-    // );
+    //  FirebaseAdMob.instance.initialize(appId: "ca-app-pub-7599976903549248~3408543611");
+    //  myBanner
+    //  ..load()
+    //  ..show(
+    //    anchorOffset: 60.0,
+    //    horizontalCenterOffset: 10.0,
+    //     anchorType: AnchorType.bottom,
+    //  );
   }
 
 
@@ -56,30 +58,47 @@ class _HomePageState extends State<HomePage> {
 Future<List<Event>> buscarEventos() async {
    print("A ir buscar eventos da bd");
     List<Event> eventosLista = new List<Event>();
-    return fb.FirebaseDatabase.instance.reference().child('eventos').once().then((eventos) {
+    return fb.FirebaseDatabase.instance.reference().child('eventos').once().then((eventos){
       fb.DataSnapshot ds = eventos;
       Map mapa = ds.value;
-      print(mapa.toString());
+      
       if(mapa != null) {
         // Caso hajam realmente eventos
         mapa.forEach((nome , resto) {
+          bool like;
+          bool inte;
           String nomezito = nome;
           Map restito = resto;
           String photo = restito['photoUrl'].toString();
           String descricao = restito['desc'].toString();
+          String autor = restito['autor'].toString();
+          String data = restito['data'].toString();
           Map likes = restito['likes'];
           Map interesses = restito['interesse'];
           int numeroInteresse = int.parse(interesses['total'].toString());
           int numeroLikes = int.parse(likes['total'].toString());
-          Event novoEvento = new Event("EVENT", nomezito, photoUrl: photo, descricao: descricao , likes: numeroLikes, interesse: numeroInteresse );
+          if(likes.containsKey(_logged.username)) like =true;
+          else like = false;
+          if(interesses.containsKey(_logged.username)) inte =true;
+          else inte = false;
+
+
+          Event novoEvento = new Event("EVENT", nomezito, photoUrl: photo, descricao: descricao , likes: numeroLikes, interesse: numeroInteresse , doIliked: like, doIinteress: inte, autor: autor,horas: data);
           //print(novoEvento.toString());
           eventosLista.add(novoEvento);
+
+
+          // Event novoEvento = new Event("EVENT", nomezito, photoUrl: photo, descricao: descricao , likes: numeroLikes, interesse: numeroInteresse );
+          // //print(novoEvento.toString());
+          // eventosLista.add(novoEvento);
         });
         return eventosLista;
       }
     });
 
 }
+
+
 
   void buscarCards() {
     // Esta funcao encarrega-se de ir buscar eventos a database e formata em cards
@@ -91,17 +110,15 @@ Future<List<Event>> buscarEventos() async {
 
      for(int i = 0 ; i < aux.length ; i++) {
        // Cria uma card para cada envento que exista
+       
+       print("----> ${aux[i].nome} : liked ${aux[i].doIliked} interested ${aux[i].doIinteress}");
         listita.add(Card(
-        elevation: 8.0,
+        elevation: 15.0,
         margin: new EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
         child: Container(
           decoration: BoxDecoration(color: Colors.white),
           child: ListTile(
-            onTap: () {
-             
-            },
             contentPadding: EdgeInsets.symmetric(horizontal: 20.0,vertical: 10.0),
-           
             title: Container(
               padding: EdgeInsets.only(right: 12.0),
               decoration: new BoxDecoration(
@@ -111,11 +128,19 @@ Future<List<Event>> buscarEventos() async {
               ),
               child: Column(
                 children: <Widget>[
-                  Text(aux[i].nome , style: TextStyle(fontWeight: FontWeight.bold),),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                        Text(aux[i].autor, style: TextStyle(color: Colors.grey),),
+                        Text(aux[i].nome , style: TextStyle(fontWeight: FontWeight.bold),),
+                        Text(aux[i].horas, style: TextStyle(color: Colors.grey),),
+                    ],
+                  ),
+                  
                   SizedBox(height: 15),
                   Image.network(aux[i].photoUrl),
                   SizedBox(
-                    height: 5,
+                    height: 2,
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -123,7 +148,7 @@ Future<List<Event>> buscarEventos() async {
                       Row(
                         children: <Widget>[
                           IconButton(
-                            icon: Icon(Icons.done_outline, color: Colors.grey,),
+                            icon: Icon(Icons.check, color: aux[i].doIliked?Colors.green : Colors.grey,),
                             onPressed: () {
 
                             },
@@ -133,7 +158,7 @@ Future<List<Event>> buscarEventos() async {
                             child: Text(aux[i].likes.toString()),
                           ),
                           IconButton(
-                            icon: Icon(Icons.tag_faces, color: Colors.grey,),
+                            icon: Icon(Icons.tag_faces, color: aux[i].doIinteress? Colors.yellow[700]:Colors.grey,),
                             onPressed: () {
 
                             },
@@ -151,10 +176,23 @@ Future<List<Event>> buscarEventos() async {
 
                         child: FlatButton(
                           child: Text("See more"), 
-                          onPressed: () {
+                          onPressed: (){
                             // Caso carregue no bota para ver mais
-                            Navigator.of(context).push(new MaterialPageRoute(builder: (BuildContext context) => new Seemore(aux[i].nome,aux[i].descricao,aux[i].interesse,aux[i].likes,aux[i].photoUrl,_logged.username)));
-                            
+                            Navigator.of(context).push(new MaterialPageRoute(builder: (BuildContext context) => new Seemore(aux[i],_logged.username))).then((valor) {
+                            // saber qual evento foi refrescado para mudar as cores dos icons
+                            print("zigalheira");
+                            lastRefreshed['nome'] = aux[i].nome;
+                            print("zigalheira2");
+                            lastRefreshed['liked'] = valor['likes'];
+                            lastRefreshed['interested'] = valor['interesse'];
+
+                            // aux[i].doIliked = valor['likes'];
+                            // aux[i].doIinteress  = valor['interesse'];
+                            setState(() {
+                              refreshed = false;
+                            });
+                            });
+                          
                           },
 
                         ),
@@ -187,7 +225,7 @@ Future<List<Event>> buscarEventos() async {
   }
 
 
-
+ 
 
   @override
   Widget build(BuildContext context) {
@@ -196,9 +234,9 @@ Future<List<Event>> buscarEventos() async {
    if(_logged.licenciatura == "hey") licenca = false;
    String imagem_licenciatura = lp.lic[_logged.licenciatura];
    if (!refreshed) buscarCards();
-   
 
- return new WillPopScope(    //WillPopScore evita andar para tras em androids e nao volta a pagina de login
+   
+  return new WillPopScope(    //WillPopScore evita andar para tras em androids e nao volta a pagina de login
       onWillPop: () async => false,
       child: new Scaffold(
       appBar: new AppBar(
@@ -316,11 +354,14 @@ Future<List<Event>> buscarEventos() async {
           ],
         ),
       ),
-      body: ListView(
-        children: <Widget>[
-          actual != null? actual : Text("")
-        ],
-      ),
+      body: refreshed? ListView(
+          children: <Widget>[
+            actual != null? actual : Text("")
+            ],
+          ) : Center(
+            child: new CircularProgressIndicator(valueColor: AlwaysStoppedAnimation (Colors.green)),
+          )
+      
       ),
     );
     

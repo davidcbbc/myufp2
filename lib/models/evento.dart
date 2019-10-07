@@ -7,13 +7,16 @@ class Event {
   String dia;
   Disciplina disciplina;
 
+  bool doIliked = false;
+  bool doIinteress= false;
+  String autor;
   String type = ''; //EXAM ou NORMAL ou SCHEDULE
   String nome = '';
   String descricao = '';
   String horas ='';
   String photoUrl = '';
 
-  Event(this.type,this.nome,{this.dia,this.descricao,this.horas,this.disciplina,this.likes,this.photoUrl,this.interesse});
+  Event(this.type,this.nome,{this.dia,this.descricao,this.horas,this.disciplina,this.likes,this.photoUrl,this.interesse,this.doIinteress,this.doIliked,this.autor});
 
   @override
   String toString() {

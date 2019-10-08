@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:myufp/models/evento.dart';
 import 'package:myufp/models/licenciaturas.dart';
 import 'package:myufp/models/user.dart';
+import 'package:myufp/screens/admin.dart';
 import 'package:myufp/screens/assiduity.dart';
 import 'package:myufp/screens/grades.dart';
 import 'package:myufp/screens/login_page.dart';
@@ -37,12 +38,14 @@ class _HomePageState extends State<HomePage> {
   _HomePageState(this._logged);
   Widget actual;
   Map lastRefreshed = new Map();
+  bool isAdmin = false;
 
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+
     //  FirebaseAdMob.instance.initialize(appId: "ca-app-pub-7599976903549248~3408543611");
     //  myBanner
     //  ..load()
@@ -54,6 +57,18 @@ class _HomePageState extends State<HomePage> {
   }
 
 
+Future<bool> isThisUserAdming() {
+  // Return de um bool para saber se o utilizador e admin ou nao
+  return fb.FirebaseDatabase.instance.reference().child('admin').once().then((admins){
+    Map mapa = admins.value;
+    if(mapa.containsKey(_logged.username)) {
+      print("ADMIN SIM SENHORA");
+      return true;
+    }
+    print("NAO E ADMIN");
+    return false;
+  });
+}
 
 Future<List<Event>> buscarEventos() async {
    print("A ir buscar eventos da bd");
@@ -180,9 +195,9 @@ Future<List<Event>> buscarEventos() async {
                             // Caso carregue no bota para ver mais
                             Navigator.of(context).push(new MaterialPageRoute(builder: (BuildContext context) => new Seemore(aux[i],_logged.username))).then((valor) {
                             // saber qual evento foi refrescado para mudar as cores dos icons
-                            print("zigalheira");
+                            
                             lastRefreshed['nome'] = aux[i].nome;
-                            print("zigalheira2");
+                            
                             lastRefreshed['liked'] = valor['likes'];
                             lastRefreshed['interested'] = valor['interesse'];
 
@@ -229,11 +244,19 @@ Future<List<Event>> buscarEventos() async {
 
   @override
   Widget build(BuildContext context) {
+    
+    
     bool licenca = true;
    Licenciaturas lp = new Licenciaturas();
    if(_logged.licenciatura == "hey") licenca = false;
    String imagem_licenciatura = lp.lic[_logged.licenciatura];
-   if (!refreshed) buscarCards();
+   if (!refreshed){
+    buscarCards();
+    var add = isThisUserAdming();
+    add.then((vooleano) {
+      isAdmin = vooleano;
+    });
+   } 
 
    
   return new WillPopScope(    //WillPopScore evita andar para tras em androids e nao volta a pagina de login
@@ -351,6 +374,14 @@ Future<List<Event>> buscarEventos() async {
                 Navigator.of(context).push(new MaterialPageRoute(builder: (BuildContext context) => new LoginPage()));
               },
             ),
+            isAdmin? new ListTile(
+              title: new Text("Admin"),
+              leading: new Icon(Icons.gavel),
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(new MaterialPageRoute(builder: (BuildContext context) => new Admin()));
+              },
+            ): Text("")
           ],
         ),
       ),

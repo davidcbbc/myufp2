@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:firebase_database/firebase_database.dart' as fb;
 import 'package:myufp/models/evento.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 
 class Admin extends StatefulWidget {
@@ -224,9 +225,7 @@ Future<List<Event>> buscarEventos() async {
     String descricao;
     String data;
     String autor;
-  
-    
-    
+    String photoUrl;
     final _formKey = GlobalKey<FormState>();
     Alert(
       closeFunction: () {
@@ -298,6 +297,7 @@ Future<List<Event>> buscarEventos() async {
             ),
             
           ),
+          
           TextFormField(
             onSaved: (value) {
                data = value;
@@ -327,16 +327,16 @@ Future<List<Event>> buscarEventos() async {
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
             ),  
           ),
+          SizedBox(height: 10),
            TextFormField(
             onSaved: (desc) {
-              descricao = desc;
+              photoUrl = desc;
             },
             validator: (value) {
               if(value.isEmpty) return "Please enter a link to a image";
             },
             keyboardType: TextInputType.multiline,
             maxLines: null,
-            maxLength: 300,
             cursorColor: Colors.black,
             autofocus: false,
             initialValue: '',
@@ -349,16 +349,164 @@ Future<List<Event>> buscarEventos() async {
                 borderSide: BorderSide(color: Colors.grey),
                 borderRadius: BorderRadius.all(Radius.circular(12.0)),
               ),
-              icon: Icon(Icons.description,color: Colors.grey,),
+              icon: Icon(Icons.link,color: Colors.grey,),
               hintText: "Image link",
               contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
             ),
             
           ),
+          TextFormField(
+            onSaved: (desc) {
+              autor = desc;
+            },
+            validator: (value) {
+              if(value.isEmpty) return "Please enter an author";
+            },
+            keyboardType: TextInputType.multiline,
+            maxLines: null,
+            cursorColor: Colors.black,
+            autofocus: false,
+            initialValue: '',
+            decoration: InputDecoration(
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.green),
+                borderRadius: BorderRadius.all(Radius.circular(12.0))
+              ),
+               enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.grey),
+                borderRadius: BorderRadius.all(Radius.circular(12.0)),
+              ),
+              icon: Icon(Icons.account_circle, color: Colors.grey,),
+              hintText: "Author",
+              contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
+            ),
+            
+          ),
+          
           ]),
       ),
+        ],
+      ),
+      buttons: [
+        DialogButton( 
+          height: 35,
+          child: Text("Ok",
+          style: TextStyle(color: Colors.white, fontSize: 20),),
+          onPressed: () async {
+            // aqui cria o evento
+            if(_formKey.currentState.validate()) {
+              _formKey.currentState.save();
+               Navigator.pop(context);
+            print("nome $nome \n descricao $descricao \n data $data \n autor $autor \n photourl $photoUrl");
+            _showEvent(nome,descricao,data,autor,photoUrl);
+            }
+           
+            
+          } ,
+          width:120,
+          color: Colors.green,
+        ),
+          DialogButton( 
+          height: 35,
+          child: Text("Cancel",
+          style: TextStyle(color: Colors.white, fontSize: 20),),
+          onPressed: () {
+            return Navigator.pop(context);
+          } ,
+          width:120,
+          color: Colors.grey,
+        ),
+      ]
+    ).show();
+  }
+
+      
+       _showEvent(String nome, String descricao , String data , String autor, String photoUrl) {
     
+    Alert(
+      closeFunction: () {
+        print("Quiting ...");
+      },
+      context: context,
+      title: "Create an event",
+      content: Column(
+        children: <Widget>[
+          Card(
+        elevation: 15.0,
+        margin: new EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+        child: Container(
+          width: 1700,
+          decoration: BoxDecoration(color: Colors.white),
+          child: ListTile(
+            contentPadding: EdgeInsets.symmetric(horizontal: 20.0,vertical: 10.0),
+            title: Container(
+              padding: EdgeInsets.only(right: 12.0),
+              decoration: new BoxDecoration(
+                border: new Border(
+                  right: new BorderSide(width: 1.0, color: Colors.white24)
+                )
+              ),
+              child: Column(
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                        Text(autor, style: TextStyle(color: Colors.grey),),
+                        Text(nome , style: TextStyle(fontWeight: FontWeight.bold),),
+                        Text(data, style: TextStyle(color: Colors.grey),),
+                    ],
+                  ),
+                  
+                  SizedBox(height: 15),
+                  CachedNetworkImage(
+                      imageUrl: photoUrl,
+                      placeholder: (context, url) => new CircularProgressIndicator(),
+                      errorWidget: (context, url, error) => new Icon(Icons.error),
+                  ),
+                  SizedBox(
+                    height: 2,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          IconButton(
+                            icon: Icon(Icons.check, color: Colors.grey,),
+                            onPressed: () {
+
+                            },
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(left: 4),
+                            child: Text("0"),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.tag_faces, color:Colors.grey,),
+                            onPressed: () {
+
+                            },
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(left: 4),
+                            child: Text("0"),
+                          )
+                        ],
+                      ),
+                      
+                    ],
+                  )
+                
+                ],
+
+              )
+            ),
+            
+          ),
+        ),
+      )
         ],
       ),
       buttons: [
@@ -367,7 +515,8 @@ Future<List<Event>> buscarEventos() async {
           child: Text("Create",
           style: TextStyle(color: Colors.white, fontSize: 20),),
           onPressed: () async {
-            // aqui cria o evento
+            // aqui cria o evento na base de dados
+            print("a criar");
             
           } ,
           width:120,

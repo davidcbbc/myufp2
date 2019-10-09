@@ -9,6 +9,7 @@ import 'package:myufp/screens/menu.dart';
 import 'package:myufp/screens/schedule.dart';
 import 'package:myufp/screens/secretary.dart';
 import 'package:myufp/screens/thecalendar.dart';
+import 'package:firebase_database/firebase_database.dart' as fb;
 import 'myfiles.dart';
 
 const url = 'https://siws.ufp.pt/api/v1/';
@@ -16,9 +17,29 @@ const url = 'https://siws.ufp.pt/api/v1/';
 
 Map credenciais;
 
+
+Future<bool> isThisUserAdmin(String username) {
+  // Return de um bool para saber se o utilizador e admin ou nao
+  return fb.FirebaseDatabase.instance.reference().child('admin').once().then((admins){
+    Map mapa = admins.value;
+    if(mapa.containsKey(username)) {
+      print("ESTE USUÁRIO É ADMIN");
+      return true;
+    }
+    print("ESTE USUÁRIO NÃO É ADMIN");
+    return false;
+  });
+}
+
+
+
+
+
+
 Future<User> loginUser({Map body}) async{
     return  http.post(url + 'login', body: body).then((http.Response response) {
     final int statusCode = response.statusCode;
+    print(statusCode);
     if (statusCode < 200 || statusCode >= 400 || json == null) {
       throw new Exception("Error while fetching data on loginUser");
     }
@@ -45,8 +66,11 @@ Future<Map<String,String>> refreshToken() async {
       tokenValido = {
         'token' : usuario.token
       };
-      writeTokenTxt(usuario.token, credenciais['username'], credenciais['password'], "token.txt",credenciais['licenciatura']);
-      return tokenValido;
+      isThisUserAdmin(usuario.username).then((valor) {
+        writeTokenTxt(usuario.token, credenciais['username'], credenciais['password'], "token.txt",credenciais['licenciatura'], valor);
+        return tokenValido;
+      });
+      
     });
   });
 }
@@ -137,19 +161,21 @@ Future<Grades> valores_notas(Map body, String type) async {
 }
 
 
+
+
 Future<String> licenciatura(Map body) async {
   // Retorna em string a licenciatura
     return http.get(Uri.http('siws.ufp.pt', '/api/v1/grades/final', body)).then(
     (http.Response response) {
     final int statusCode = response.statusCode;
+    print(statusCode);
     if (statusCode < 200 || statusCode >= 400 || json == null) {
-      throw new Exception("Error while fetching data on licenciatura");
+      return "UFP";
     }
     Map<String, dynamic> arr = json.decode(response.body);
     Map hey = arr['message'];
     hey.forEach((tipo, _) {
       print(tipo.toString());
-      print("1");
       if(tipo.toString() == "Licenciatura") {
         hey = hey[tipo];
         print("${hey[tipo].toString()}");
@@ -163,7 +189,6 @@ Future<String> licenciatura(Map body) async {
     }
     hey.forEach((key, _) {
       licenciatura = key.toString();
-      print("2");
     });
     print("Licenciatura: $licenciatura");
     return licenciatura;

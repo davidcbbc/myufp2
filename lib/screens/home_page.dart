@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:myufp/models/evento.dart';
 import 'package:myufp/models/licenciaturas.dart';
@@ -18,6 +19,10 @@ import 'package:myufp/screens/thecalendar.dart';
 import 'package:myufp/services/myfiles.dart';
 import 'package:firebase_admob/firebase_admob.dart';
 
+import '../services/myfiles.dart';
+import '../services/myfiles.dart';
+import '../services/myfiles.dart';
+import '../services/myfiles.dart';
 import './atm.dart';
 
 class HomePage extends StatefulWidget {
@@ -45,7 +50,12 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-
+    getAdmin().then((valor) {
+      isAdmin = valor;
+      setState(() {
+        
+      });
+    });
     //  FirebaseAdMob.instance.initialize(appId: "ca-app-pub-7599976903549248~3408543611");
     //  myBanner
     //  ..load()
@@ -57,23 +67,13 @@ class _HomePageState extends State<HomePage> {
   }
 
 
-Future<bool> isThisUserAdming() {
-  // Return de um bool para saber se o utilizador e admin ou nao
-  return fb.FirebaseDatabase.instance.reference().child('admin').once().then((admins){
-    Map mapa = admins.value;
-    if(mapa.containsKey(_logged.username)) {
-      print("ADMIN SIM SENHORA");
-      return true;
-    }
-    print("NAO E ADMIN");
-    return false;
-  });
-}
+
 
 Future<List<Event>> buscarEventos() async {
    print("A ir buscar eventos da bd");
     List<Event> eventosLista = new List<Event>();
     return fb.FirebaseDatabase.instance.reference().child('eventos').once().then((eventos){
+      if(eventos.value == null) return null;
       fb.DataSnapshot ds = eventos;
       Map mapa = ds.value;
       
@@ -108,7 +108,7 @@ Future<List<Event>> buscarEventos() async {
           // eventosLista.add(novoEvento);
         });
         return eventosLista;
-      }
+      } else return null;
     });
 
 }
@@ -120,13 +120,23 @@ Future<List<Event>> buscarEventos() async {
     List<Widget> listita = new List<Widget>();
    var eventos = buscarEventos();
     eventos.then((eventitos) {
-
+      if(eventitos == null) {
+        //nao ha eventos
+        print("SEM EVENTOS OH MANO");
+        setState(() {
+          actual = Center(
+            child: Text("There are no events at the moment"),
+          );
+      refreshed = true;
+      });
+      return;
+        }
      List<Event> aux = eventitos;
 
      for(int i = 0 ; i < aux.length ; i++) {
        // Cria uma card para cada envento que exista
        
-       print("----> ${aux[i].nome} : liked ${aux[i].doIliked} interested ${aux[i].doIinteress}");
+       //print("----> ${aux[i].nome} : liked ${aux[i].doIliked} interested ${aux[i].doIinteress}");
         listita.add(Card(
         elevation: 15.0,
         margin: new EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
@@ -142,6 +152,7 @@ Future<List<Event>> buscarEventos() async {
                 )
               ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -153,7 +164,11 @@ Future<List<Event>> buscarEventos() async {
                   ),
                   
                   SizedBox(height: 15),
-                  Image.network(aux[i].photoUrl),
+                  CachedNetworkImage(
+                    imageUrl: aux[i].photoUrl,
+                    placeholder: (context, url) => new CircularProgressIndicator(),
+                    errorWidget: (context, url, error) => new Icon(Icons.error),
+                  ),
                   SizedBox(
                     height: 2,
                   ),
@@ -245,18 +260,19 @@ Future<List<Event>> buscarEventos() async {
   @override
   Widget build(BuildContext context) {
     
-    
+    if(isAdmin == null) {
+      print("ISADMIN DEU ERRO (NULL)");
+      isAdmin = false;
+    } 
     bool licenca = true;
    Licenciaturas lp = new Licenciaturas();
-   if(_logged.licenciatura == "hey") licenca = false;
+   if(_logged.licenciatura == "hey" || _logged.licenciatura == "UFP") licenca = false;
    String imagem_licenciatura = lp.lic[_logged.licenciatura];
    if (!refreshed){
     buscarCards();
-    var add = isThisUserAdming();
-    add.then((vooleano) {
-      isAdmin = vooleano;
-    });
    } 
+
+    
 
    
   return new WillPopScope(    //WillPopScore evita andar para tras em androids e nao volta a pagina de login

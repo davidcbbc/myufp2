@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_database/firebase_database.dart' as fb;
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -80,7 +81,11 @@ class SeemoreState extends State<Seemore> {
       ),
       body: refreshed? ListView(
         children: <Widget>[
-          Image.network(eventoAtual.photoUrl),
+          CachedNetworkImage(
+                      imageUrl: eventoAtual.photoUrl,
+                      placeholder: (context, url) => new CircularProgressIndicator(),
+                      errorWidget: (context, url, error) => new Icon(Icons.error),
+                  ),
           SizedBox(height: 20,),
           Column(
             children: <Widget>[

@@ -48,7 +48,7 @@ Future<List<Event>> buscarEventos() async {
          
         });
         return eventosLista;
-      }
+      } else return null;
     });
 
 }
@@ -57,7 +57,16 @@ Future<List<Event>> buscarEventos() async {
     List<Widget> listita = new List<Widget>();
    var eventos = buscarEventos();
     eventos.then((eventitos) {
-
+      if(eventitos == null) {
+        setState(() {
+       actual = Center(
+     
+        child: Text("Whitout events , dear admin"),
+     
+    );
+    refreshed = true;
+     });
+      }
      List<Event> aux = eventitos;
 
      for(int i = 0 ; i < aux.length ; i++) {
@@ -202,6 +211,7 @@ Future<List<Event>> buscarEventos() async {
               refreshed = false;
             });
             return Navigator.pop(context);
+            
           } ,
           width:120,
           color: Colors.red,
@@ -245,7 +255,7 @@ Future<List<Event>> buscarEventos() async {
             onSaved: (nomezito) {
               nome = nomezito;
             },
-            maxLength: 15,
+            maxLength: 6,
             cursorColor: Colors.black,
             autofocus: false,
             initialValue: '',
@@ -453,9 +463,9 @@ Future<List<Event>> buscarEventos() async {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                        Text(autor, style: TextStyle(color: Colors.grey),),
+                        //Text(autor, style: TextStyle(color: Colors.grey),),
                         Text(nome , style: TextStyle(fontWeight: FontWeight.bold),),
-                        Text(data, style: TextStyle(color: Colors.grey),),
+                        //Text(data, style: TextStyle(color: Colors.grey),),
                     ],
                   ),
                   
@@ -495,7 +505,7 @@ Future<List<Event>> buscarEventos() async {
                           )
                         ],
                       ),
-                      
+                  
                     ],
                   )
                 
@@ -516,8 +526,23 @@ Future<List<Event>> buscarEventos() async {
           style: TextStyle(color: Colors.white, fontSize: 20),),
           onPressed: () async {
             // aqui cria o evento na base de dados
+            Map likitos = new Map();
+            Map interesitos = new Map();
+            interesitos['total'] = 0;
+            likitos['total'] = 0;
             print("a criar");
-            
+            fb.FirebaseDatabase.instance.reference().child('eventos').child(nome).set({
+              'autor' : autor,
+              'data' : data,
+              'desc' : descricao,
+              'photoUrl' : photoUrl,
+              'likes' : likitos,
+              'interesse' : interesitos
+            });
+            setState(() {
+              refreshed = false;
+            });
+            Navigator.pop(context);
           } ,
           width:120,
           color: Colors.green,

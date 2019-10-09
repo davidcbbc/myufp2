@@ -19,11 +19,14 @@ Future<File>  _localFile(String fileName) async {
 }
 
 
-Future<File> writeTokenTxt(String token,String username, String password, String fileName, String licenciatura) async {
+
+
+
+Future<File> writeTokenTxt(String token,String username, String password, String fileName, String licenciatura, bool isAdmin) async {
   //escreve num ficheiro em formato json
   final file = await _localFile(fileName);
   return file.writeAsString(
-    "{\n\"username\": \"$username\",\n\"password\": \"$password\",\n\"token\": \"$token\",\n\"licenciatura\": \"$licenciatura\"\n}"
+    "{\n\"username\": \"$username\",\n\"password\": \"$password\",\n\"token\": \"$token\",\n\"licenciatura\": \"$licenciatura\"\n,\n\"isAdmin\": \"$isAdmin\"\n}"
   );
 }
 
@@ -63,6 +66,17 @@ Future<String> readFile(String fileName) async {
   } catch (e) {
     // If encountering an error, return 0.
     return "FILE_ERROR1";
+  }
+}
+
+Future<bool> getAdmin() async{
+  // vau buscar se é admin ou nao
+ String rawText = await readFile("token.txt");
+  try{
+     Map mapa = json.decode(rawText);
+     return mapa['isAdmin'].toString() == 'true'? true : false;
+  }on Exception {
+    return false;
   }
 }
 

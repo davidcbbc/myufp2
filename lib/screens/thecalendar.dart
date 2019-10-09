@@ -107,7 +107,7 @@ class _TheCalendarState extends State<TheCalendar> with TickerProviderStateMixin
     var eventosDaBD = returnAllEventsOfUser(this.number);
     
     eventosDaBD.then((lista) {
-      
+  
     if(lista != null) {
       
       for( int i = 0 ; i < lista.length ; i++) {
@@ -141,7 +141,9 @@ class _TheCalendarState extends State<TheCalendar> with TickerProviderStateMixin
       else eventitos[tempo].add(ev);
       }
     );  
-    }if(horario.validated) {
+    }
+    if(horario.validated) {
+  
       for( int i = 0 ; i < horario.eventos.length ; i++) {
         DateTime tempo2 = horario.eventos[i].getDateTime();
         if(eventitos[tempo2] == null){
@@ -246,9 +248,11 @@ class _TheCalendarState extends State<TheCalendar> with TickerProviderStateMixin
     //print("$user_number : ${event.toString()}");
     String mezito;
     String diazito;
+    print(event.dia);
     if(event.dia.substring(5,6) == "0") mezito = event.dia.substring(6,7);
     else mezito = event.dia.substring(5,7);
-    if(event.dia.substring(8,9) == "0") diazito = event.dia.substring(8,9);
+    //print(event.dia.substring(8,9).toString());
+    if(event.dia.substring(8,10) == "0") diazito = event.dia.substring(8,9);
     else diazito = event.dia.substring(8,10);
      
      if(mezito.length == 1) mezito = "0$mezito";
@@ -272,6 +276,10 @@ class _TheCalendarState extends State<TheCalendar> with TickerProviderStateMixin
   List<Event> eventos = new List<Event>();
   print("A DAR RETURN");
   return fb.FirebaseDatabase.instance.reference().child("users").child(user_number).child("calendar_events").once().then((valor) {
+    if(valor.value == null)  {
+      print("vou dar return null crl ");
+      return null;
+    }
     fb.DataSnapshot ds = valor;
 
     Map hey = ds.value;

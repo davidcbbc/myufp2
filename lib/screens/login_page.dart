@@ -10,6 +10,8 @@ import 'package:myufp/services/api.dart';
 import 'package:myufp/services/myfiles.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../services/api.dart';
+import '../services/api.dart';
 import 'home_page.dart';
 import 'package:flutter_progress_button/flutter_progress_button.dart';
 
@@ -162,13 +164,16 @@ class _LoginPageState extends State<LoginPage> {
                 writeLoggedTxt(checked);
                 validUser.licenciatura = await licenciatura(validUser.toMapToken());
                 // Escreve token em ficheiro para dar refresh mais tarde
-                writeTokenTxt(validUser.token,_user.username,_user.password,"token.txt",validUser.licenciatura);
-                print(validUser.token);
+                bool ad = await isThisUserAdmin(_user.username);
+                writeTokenTxt(validUser.token,_user.username,_user.password,"token.txt",validUser.licenciatura,ad);
+
                 Navigator.of(context).push(new MaterialPageRoute(builder: (BuildContext context) => new HomePage(validUser)));
               }
             }on SocketException {
               _alertaErroConnection(context);
-            }on Exception{
+
+            }on Exception catch (e){
+              print(e.toString());
               _alertaErroLogin(context);
             }
           }

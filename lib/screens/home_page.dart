@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +18,6 @@ import 'package:myufp/screens/seemore.dart';
 import 'package:myufp/screens/teste.dart';
 import 'package:myufp/screens/thecalendar.dart';
 import 'package:myufp/services/myfiles.dart';
-import 'package:firebase_admob/firebase_admob.dart';
 
 import '../services/myfiles.dart';
 import '../services/myfiles.dart';
@@ -37,33 +37,38 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   User _logged;
   bool liked = false;
+  bool connected = true;
   bool interested = false;
   int likes = 143;
   bool refreshed = false;
   _HomePageState(this._logged);
   Widget actual;
   Map lastRefreshed = new Map();
+  String imagem_licenciatura;
   bool isAdmin = false;
+  bool licenca;
+  bool semEventos = false;
 
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+
+      if(isAdmin == null) {
+      print("ISADMIN DEU ERRO (NULL)");
+      isAdmin = false;
+    } 
+    licenca = true;
+   Licenciaturas lp = new Licenciaturas();
+   if(_logged.licenciatura == "hey" || _logged.licenciatura == "UFP") licenca = false;
+   imagem_licenciatura = lp.lic[_logged.licenciatura];
     getAdmin().then((valor) {
       isAdmin = valor;
       setState(() {
         
       });
     });
-    //  FirebaseAdMob.instance.initialize(appId: "ca-app-pub-7599976903549248~3408543611");
-    //  myBanner
-    //  ..load()
-    //  ..show(
-    //    anchorOffset: 60.0,
-    //    horizontalCenterOffset: 10.0,
-    //     anchorType: AnchorType.bottom,
-    //  );
   }
 
 
@@ -124,8 +129,9 @@ Future<List<Event>> buscarEventos() async {
         //nao ha eventos
         print("SEM EVENTOS OH MANO");
         setState(() {
+          semEventos = true;
           actual = Center(
-            child: Text("There are no events at the moment"),
+            child: Text('No events at the moment' , style: TextStyle(fontSize: 20),),
           );
       refreshed = true;
       });
@@ -152,7 +158,7 @@ Future<List<Event>> buscarEventos() async {
                 )
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                //crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -166,7 +172,7 @@ Future<List<Event>> buscarEventos() async {
                   SizedBox(height: 15),
                   CachedNetworkImage(
                     imageUrl: aux[i].photoUrl,
-                    placeholder: (context, url) => new CircularProgressIndicator(),
+                    placeholder: (context, url) => new CircularProgressIndicator(valueColor: AlwaysStoppedAnimation (Colors.green)),
                     errorWidget: (context, url, error) => new Icon(Icons.error),
                   ),
                   SizedBox(
@@ -220,6 +226,7 @@ Future<List<Event>> buscarEventos() async {
                             // aux[i].doIinteress  = valor['interesse'];
                             setState(() {
                               refreshed = false;
+                              connected = true;
                             });
                             });
                           
@@ -247,6 +254,7 @@ Future<List<Event>> buscarEventos() async {
       ),
     );
     refreshed = true;
+    connected = true;
      });
     
    });
@@ -254,27 +262,47 @@ Future<List<Event>> buscarEventos() async {
     
   }
 
-
+Future<bool> isConnected() async{
+  // dar check a conexao internet
+  try{
+    var result =  await InternetAddress.lookup('siws.ufp.pt');
+    if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+      print("connectado!");
+      return true;
+    }
+  }on SocketException {
+    print("desconnectado!");
+    return false;
+  }
+}
  
 
   @override
   Widget build(BuildContext context) {
     
-    if(isAdmin == null) {
-      print("ISADMIN DEU ERRO (NULL)");
-      isAdmin = false;
-    } 
-    bool licenca = true;
-   Licenciaturas lp = new Licenciaturas();
-   if(_logged.licenciatura == "hey" || _logged.licenciatura == "UFP") licenca = false;
-   String imagem_licenciatura = lp.lic[_logged.licenciatura];
+
+
+  
+    
    if (!refreshed){
-    buscarCards();
+    isConnected().then((isOn) {
+      if(isOn) {
+        //conectado
+          buscarCards();  
+      } else {
+        // nao conectado
+        setState(() {
+        connected = false;
+        refreshed = true;
+      });
+      }
+    });
+    
    } 
 
     
 
-   
+ 
   return new WillPopScope(    //WillPopScore evita andar para tras em androids e nao volta a pagina de login
       onWillPop: () async => false,
       child: new Scaffold(
@@ -285,6 +313,7 @@ Future<List<Event>> buscarEventos() async {
             onPressed: () {
               setState(() {
                 refreshed = false;
+                connected = true;
               });
             },
           )
@@ -401,39 +430,28 @@ Future<List<Event>> buscarEventos() async {
           ],
         ),
       ),
-      body: refreshed? ListView(
+      body: connected? (refreshed? semEventos ? actual :ListView(
           children: <Widget>[
             actual != null? actual : Text("")
             ],
           ) : Center(
             child: new CircularProgressIndicator(valueColor: AlwaysStoppedAnimation (Colors.green)),
-          )
+          )) : 
+          
+          new Center(
+        child: new Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Image.asset('assets/no_wifi.png',scale: 2.8,color: Colors.grey[400],),
+          Text("Please check your connection\n \t\t\t\t\t\t\t\t\t\t\tand refresh",style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold),),
+        
+        ],
+      ),
+      )
       
       ),
     );
     
   }
-
-  static final MobileAdTargetingInfo targetingInfo = MobileAdTargetingInfo(
-    keywords: <String>['flutterio', 'beautiful apps'],
-    contentUrl: 'https://flutter.io',
-    birthday: DateTime.now(),
-    childDirected: false,
-    designedForFamilies: false,
-    gender: MobileAdGender.male, // or MobileAdGender.female, MobileAdGender.unknown
-    testDevices: <String>[], // Android emulators are considered test devices
-);
-
-BannerAd myBanner = BannerAd(
-  // Replace the testAdUnitId with an ad unit id from the AdMob dash.
-  // https://developers.google.com/admob/android/test-ads
-  // https://developers.google.com/admob/ios/test-ads
-  adUnitId: 'ca-app-pub-7599976903549248/5691431332',
-  size: AdSize.banner,
-  targetingInfo: targetingInfo,
-  listener: (MobileAdEvent event) {
-    print("BannerAd event is $event");
-  },
-);
-
 }

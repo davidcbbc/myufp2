@@ -165,6 +165,7 @@ class _LoginPageState extends State<LoginPage> {
                 validUser.licenciatura = await licenciatura(validUser.toMapToken());
                 // Escreve token em ficheiro para dar refresh mais tarde
                 bool ad = await isThisUserAdmin(_user.username);
+                print("ADMIN $ad");
                 writeTokenTxt(validUser.token,_user.username,_user.password,"token.txt",validUser.licenciatura,ad);
 
                 Navigator.of(context).push(new MaterialPageRoute(builder: (BuildContext context) => new HomePage(validUser)));

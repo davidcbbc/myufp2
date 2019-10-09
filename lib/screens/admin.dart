@@ -26,7 +26,9 @@ Future<List<Event>> buscarEventos() async {
    print("A ir buscar eventos da bd");
     List<Event> eventosLista = new List<Event>();
     return fb.FirebaseDatabase.instance.reference().child('eventos').once().then((eventos){
+      if(eventos.value == null) return null;
       fb.DataSnapshot ds = eventos;
+      print("nao posso chegar aqui");
       Map mapa = ds.value;
       if(mapa != null) {
         // Caso hajam realmente eventos
@@ -57,15 +59,18 @@ Future<List<Event>> buscarEventos() async {
     List<Widget> listita = new List<Widget>();
    var eventos = buscarEventos();
     eventos.then((eventitos) {
+      
       if(eventitos == null) {
+        
         setState(() {
        actual = Center(
      
-        child: Text("Whitout events , dear admin"),
+        child: Text("Whitout events , dear admin", style: TextStyle(fontSize: 20),),
      
-    );
-    refreshed = true;
+        );
+        refreshed = true;
      });
+     return;
       }
      List<Event> aux = eventitos;
 
@@ -170,8 +175,6 @@ Future<List<Event>> buscarEventos() async {
     if(!refreshed)
     buscarCards();
 
-
-
     return new Scaffold(
       appBar: AppBar(
         title: Text("Admin"),
@@ -255,7 +258,7 @@ Future<List<Event>> buscarEventos() async {
             onSaved: (nomezito) {
               nome = nomezito;
             },
-            maxLength: 6,
+            maxLength: 15,
             cursorColor: Colors.black,
             autofocus: false,
             initialValue: '',

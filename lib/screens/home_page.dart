@@ -144,15 +144,22 @@ Future<List<Event>> buscarEventos() async {
        
        //print("----> ${aux[i].nome} : liked ${aux[i].doIliked} interested ${aux[i].doIinteress}");
         listita.add(Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30.0),
+          ),
         elevation: 15.0,
         margin: new EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
         child: Container(
-          decoration: BoxDecoration(color: Colors.white),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(30.0)),
           child: ListTile(
             contentPadding: EdgeInsets.symmetric(horizontal: 20.0,vertical: 10.0),
             title: Container(
+            
               padding: EdgeInsets.only(right: 12.0),
               decoration: new BoxDecoration(
+                
                 border: new Border(
                   right: new BorderSide(width: 1.0, color: Colors.white24)
                 )
@@ -171,6 +178,8 @@ Future<List<Event>> buscarEventos() async {
                   
                   SizedBox(height: 15),
                   CachedNetworkImage(
+                    height: 250,
+                    width: 500,
                     imageUrl: aux[i].photoUrl,
                     placeholder: (context, url) => new CircularProgressIndicator(valueColor: AlwaysStoppedAnimation (Colors.green)),
                     errorWidget: (context, url, error) => new Icon(Icons.error),
@@ -194,7 +203,7 @@ Future<List<Event>> buscarEventos() async {
                             child: Text(aux[i].likes.toString()),
                           ),
                           IconButton(
-                            icon: Icon(Icons.tag_faces, color: aux[i].doIinteress? Colors.yellow[700]:Colors.grey,),
+                            icon: Icon(Icons.tag_faces, color: aux[i].doIinteress? Colors.yellow[900]:Colors.grey,),
                             onPressed: () {
 
                             },
@@ -206,7 +215,10 @@ Future<List<Event>> buscarEventos() async {
                         ],
                       ),
                       Container(
-                        color: Colors.grey[300],
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(10.0)),
+                        
                         height: 30,
                         width: 100,
 

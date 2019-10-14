@@ -6,7 +6,7 @@ class Event {
   int interesse;
   String dia;
   Disciplina disciplina;
-
+  List<String> comentarios;
   bool doIliked = false;
   bool doIinteress= false;
   String autor;
@@ -16,7 +16,7 @@ class Event {
   String horas ='';
   String photoUrl = '';
 
-  Event(this.type,this.nome,{this.dia,this.descricao,this.horas,this.disciplina,this.likes,this.photoUrl,this.interesse,this.doIinteress,this.doIliked,this.autor});
+  Event(this.type,this.nome,{this.dia,this.descricao,this.horas,this.disciplina,this.likes,this.photoUrl,this.interesse,this.doIinteress,this.doIliked,this.autor,this.comentarios});
 
   @override
   String toString() {

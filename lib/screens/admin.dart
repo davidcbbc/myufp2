@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:firebase_database/firebase_database.dart' as fb;
@@ -20,6 +22,7 @@ class Admin extends StatefulWidget {
 class AdminState extends State<Admin> {
 Widget actual;
 bool refreshed = false;
+bool connected = true;
 
 
 Future<List<Event>> buscarEventos() async {
@@ -28,7 +31,7 @@ Future<List<Event>> buscarEventos() async {
     return fb.FirebaseDatabase.instance.reference().child('eventos').once().then((eventos){
       if(eventos.value == null) return null;
       fb.DataSnapshot ds = eventos;
-      print("nao posso chegar aqui");
+     
       Map mapa = ds.value;
       if(mapa != null) {
         // Caso hajam realmente eventos
@@ -166,14 +169,42 @@ Future<List<Event>> buscarEventos() async {
    //return CircularProgressIndicator();
     
   }
-
+  
+Future<bool> isConnected() async{
+  // dar check a conexao internet
+  try{
+    var result =  await InternetAddress.lookup('siws.ufp.pt');
+    if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+      print("connectado!");
+      return true;
+    }
+  }on SocketException {
+    print("desconnectado!");
+    return false;
+  }
+}
 
 
   @override
   Widget build(BuildContext context) {
 
-    if(!refreshed)
-    buscarCards();
+
+  if (!refreshed){
+    isConnected().then((isOn) {
+      if(isOn) {
+        //conectado
+          buscarCards();  
+      } else {
+        // nao conectado
+        setState(() {
+        connected = false;
+        refreshed = true;
+      });
+      }
+    });
+    
+   } 
+
 
     return new Scaffold(
       appBar: AppBar(
@@ -189,7 +220,19 @@ Future<List<Event>> buscarEventos() async {
           )
         ],
       ),
-      body: actual == null? Text(""): actual,
+      body: connected ? actual == null? Text(""): actual : 
+       new Center(
+        child: new Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Image.asset('assets/no_wifi.png',scale: 2.8,color: Colors.grey[400],),
+          Text("Please check your connection\n \t\t\t\t\t\t\t\t\t\t\tand refresh",style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold),),
+        
+        ],
+      ),
+      )
+      
     );
   }
 

@@ -272,50 +272,62 @@ class _TheCalendarState extends State<TheCalendar> with TickerProviderStateMixin
   }
 
   Future<List<Event>> returnAllEventsOfUser(String user_number) async{
-    print("A ENTRAR");
+ 
   List<Event> eventos = new List<Event>();
-  print("A DAR RETURN");
-  return fb.FirebaseDatabase.instance.reference().child("users").child(user_number).child("calendar_events").once().then((valor) {
+
+  return fb.FirebaseDatabase.instance.reference().child("users").child(number).child("calendar_events").once().then((valor) {
     if(valor.value == null)  {
       print("vou dar return null crl ");
       return null;
     }
     fb.DataSnapshot ds = valor;
-
+  
     Map hey = ds.value;
-    if(hey != null)
-    print("1");
     hey.forEach((ano,resto) {
-      print("entrei no for each");
-
       String anito = ano.toString();
       print("ANO $anito");
       print(resto);
-      Map info = resto;
-      print("a entrar no segundo for each");
+      Map info;
+     
+      if( resto is List)  {
+        print("LISTA CARALHO PAROU TUDO");
+      } else  {
+      info = resto;
+      print("MAPA CONTINUA");
+      if(info != null)
       info.forEach((mes, restito) {
-        print("2");
-        String mesito = mes.toString();
-        if( mesito.toString().length == 1) mesito = "0$mesito";
-        Map info2 = restito;
-        info2.forEach((dia , restito2) {
-          String diazito = dia.toString();
-            if(diazito.toString().length == 1) diazito = "0$diazito";
-          Map info3 = restito2;
-          info3.forEach((hora, restito3) {
-            String horita = hora.toString();
-            //print("HORA $horita");
-            Map desc = restito3;
-            Event aux = new Event(
-              "COSTUM",
-              desc['event_name'].toString(),
-              dia: "$anito-$mesito-$diazito",
-              descricao: desc['event_description'].toString(),
-              horas: horita);
-              eventos.add(aux);
-          });
-        });
+        if(mes != null ) {
+          print("mes diferente null");
+                  String mesito = mes.toString();
+                  print("MES $mesito");
+                  if( mesito.toString().length == 1) mesito = "0$mesito";
+                  Map info2 = restito;
+                  info2.forEach((dia , restito2) {
+                    String diazito = dia.toString();
+                    print("DIA $diazito");
+                      if(diazito.toString().length == 1) diazito = "0$diazito";
+                    Map info3 = restito2;
+                    info3.forEach((hora, restito3) {
+                      String horita = hora.toString();
+                      //print("HORA $horita");
+                      Map desc = restito3;
+                      Event aux = new Event(
+                        "COSTUM",
+                        desc['event_name'].toString(),
+                        dia: "$anito-$mesito-$diazito",
+                        descricao: desc['event_description'].toString(),
+                        horas: horita);
+                        eventos.add(aux);
+                    });
+                  });
+        }  
+        
       });
+           
+          } 
+      
+      
+     
     });
   return eventos;
   });

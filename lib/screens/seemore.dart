@@ -141,7 +141,7 @@ class SeemoreState extends State<Seemore> {
                             child: Text("I'm going"),
                           ),
                           IconButton(
-                            icon: Icon(Icons.tag_faces, color: interested? Colors.yellow[700] : Colors.grey,),
+                            icon: Icon(Icons.tag_faces, color: interested? Colors.yellow[900] : Colors.grey,),
                             onPressed: () {
                               //aumenta os interessados
                                 var instantace = fb.FirebaseDatabase.instance.reference();
@@ -178,6 +178,7 @@ class SeemoreState extends State<Seemore> {
                         ],
                       ),
                       SizedBox(height: 20,),
+                      // comentarios
         ],
       ): new Center(
          child: new CircularProgressIndicator(valueColor: AlwaysStoppedAnimation (Colors.green)), 
